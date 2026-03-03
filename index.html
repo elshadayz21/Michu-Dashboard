@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Metabase Dashboard</title>
+  <title>Metabase Dashboard - VIDAA 88</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
-      background: #fff;
+      background: #ffffff;
     }
     iframe {
       border: none;
@@ -19,17 +19,27 @@
   </style>
 </head>
 <body>
+  <!-- Use sandbox to disable JS in the iframe (older browsers handle it better) -->
   <iframe 
     src="https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all" 
+    sandbox="allow-same-origin allow-forms allow-popups allow-presentation"
     allowfullscreen>
   </iframe>
 
   <script>
-    // Auto-refresh iframe every 5 minutes (300000 ms)
+    // Auto-refresh every 5 minutes (300000 ms)
     setInterval(() => {
       const iframe = document.querySelector('iframe');
       iframe.src = iframe.src;
     }, 300000);
+
+    // Some VIDAA browsers need a small delay to load iframe
+    window.onload = function() {
+      setTimeout(() => {
+        const iframe = document.querySelector('iframe');
+        iframe.src = iframe.src;
+      }, 1000);
+    };
   </script>
 </body>
 </html>
