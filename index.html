@@ -222,9 +222,52 @@
         display: flex;
       }
 
+      /* ── Pie countdown ── */
+      .pie-countdown {
+        width: 32px;
+        height: 32px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: default;
+      }
+
+      .pie-countdown.show {
+        display: flex;
+      }
+
+      .pie-countdown svg {
+        transform: rotate(-90deg);
+        width: 32px;
+        height: 32px;
+      }
+
+      .pie-bg {
+        fill: rgba(255,255,255,0.08);
+      }
+
+      .pie-fill {
+        fill: #6faa3c;
+        transition: none;
+      }
+
+      .pie-countdown .pie-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.7);
+        pointer-events: none;
+        z-index: 1;
+      }
+
       /* placeholder for left side balance */
       .footer-left {
-        width: 84px;
+        width: 120px;
       }
     </style>
   </head>
@@ -255,6 +298,15 @@
       </div>
 
       <div class="footer-controls">
+        <!-- Pie Countdown -->
+        <div class="pie-countdown" id="pieCountdown">
+          <svg viewBox="0 0 36 36">
+            <circle class="pie-bg" cx="18" cy="18" r="18"/>
+            <path class="pie-fill" id="piePath" d=""/>
+          </svg>
+          <span class="pie-label" id="pieLabel"></span>
+        </div>
+
         <!-- Auto Refresh Button -->
         <div class="control-btn" id="refreshBtn" title="Auto Refresh" onclick="toggleRefreshMenu()">
           <span class="refresh-badge" id="refreshBadge"></span>
@@ -309,7 +361,10 @@
 
     <script>
       let refreshInterval = null;
+      let countdownTick = null;
       let currentRefresh = 0;
+      let secondsLeft = 0;
+      let totalSeconds = 0;
 
       /* ── Auto Refresh ── */
       function toggleRefreshMenu() {
@@ -328,31 +383,69 @@
         // Update button state & badge
         const btn = document.getElementById('refreshBtn');
         const badge = document.getElementById('refreshBadge');
+        const pie = document.getElementById('pieCountdown');
+
         if (minutes > 0) {
           btn.classList.add('active');
           badge.textContent = minutes + 'm';
           badge.classList.add('show');
+          pie.classList.add('show');
         } else {
           btn.classList.remove('active');
           badge.classList.remove('show');
+          pie.classList.remove('show');
         }
 
-        // Clear existing timer
-        if (refreshInterval) {
-          clearInterval(refreshInterval);
-          refreshInterval = null;
-        }
+        // Clear existing timers
+        if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
+        if (countdownTick) { clearInterval(countdownTick); countdownTick = null; }
 
         // Set new timer
         if (minutes > 0) {
-          refreshInterval = setInterval(() => {
-            const frame = document.getElementById('dashboardFrame');
-            frame.src = frame.src;
-          }, minutes * 60 * 1000);
+          totalSeconds = minutes * 60;
+          secondsLeft = totalSeconds;
+          updatePie();
+
+          countdownTick = setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft <= 0) {
+              // Refresh the iframe with cache-busting param
+              const frame = document.getElementById('dashboardFrame');
+              const baseUrl = 'https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=25-michu-commercial';
+              frame.src = baseUrl + '&_t=' + Date.now();
+              secondsLeft = totalSeconds;
+            }
+            updatePie();
+          }, 1000);
         }
 
         // Close popup
         document.getElementById('refreshPopup').classList.remove('show');
+      }
+
+      /* ── Pie Chart Drawing ── */
+      function updatePie() {
+        const fraction = secondsLeft / totalSeconds;  // 1 = full, 0 = empty
+        const piePath = document.getElementById('piePath');
+        const pieLabel = document.getElementById('pieLabel');
+
+        // Build SVG arc for remaining fraction
+        if (fraction >= 1) {
+          piePath.setAttribute('d', 'M18,18 L18,0 A18,18 0 1,1 17.99,0 Z');
+        } else if (fraction <= 0) {
+          piePath.setAttribute('d', '');
+        } else {
+          const angle = fraction * 360;
+          const rad = (angle - 90) * Math.PI / 180;
+          const x = 18 + 18 * Math.cos(rad);
+          const y = 18 + 18 * Math.sin(rad);
+          const largeArc = angle > 180 ? 1 : 0;
+          piePath.setAttribute('d', `M18,18 L18,0 A18,18 0 ${largeArc},1 ${x},${y} Z`);
+        }
+
+        // Label: show minutes remaining
+        const minsLeft = Math.ceil(secondsLeft / 60);
+        pieLabel.textContent = minsLeft + 'm';
       }
 
       /* ── Fullscreen ── */
