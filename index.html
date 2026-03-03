@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Michu Commercial Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: #0f1117;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      /* ── Header ── */
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 32px;
+        background: linear-gradient(135deg, #0d1020 0%, #161b2e 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+      }
+
+      header img {
+        height: 52px;
+        object-fit: contain;
+        filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.08));
+        transition: transform 0.3s ease;
+      }
+
+      header img:hover {
+        transform: scale(1.05);
+      }
+
+      /* ── Iframe container ── */
+      .dashboard-wrapper {
+        flex: 1;
+        display: flex;
+      }
+
+      .dashboard-wrapper iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      /* ── Footer ── */
+      footer {
+        text-align: center;
+        padding: 18px 24px;
+        background: linear-gradient(135deg, #0d1020 0%, #161b2e 100%);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.3);
+      }
+
+      .motto {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        background: linear-gradient(90deg, #f7c948, #f59e0b, #f7c948);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 4px;
+      }
+
+      .tagline {
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <img src="MICHU.png" alt="Michu Logo" />
+      <img src="coop-bank-logo.png" alt="Cooperative Bank of Oromia Logo" />
+    </header>
+
+    <!-- Dashboard -->
+    <div class="dashboard-wrapper">
+      <iframe
+        src="https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=25-michu-commercial"
+        allowfullscreen
+        loading="lazy"
+      ></iframe>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="motto">Empowering Communities &amp; Transforming Lives</div>
+      <div class="tagline">Bank Smarter · Live Better</div>
+    </footer>
+  </body>
+</html>
