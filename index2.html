@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Michu Commercial Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: #0f1117;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      /* ── Header ── */
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 32px;
+        background: linear-gradient(135deg, #0d1020 0%, #161b2e 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+      }
+
+      header img {
+        height: 52px;
+        object-fit: contain;
+        filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.08));
+        transition: transform 0.3s ease;
+      }
+
+      header img:hover {
+        transform: scale(1.05);
+      }
+
+      /* ── Iframe container ── */
+      .dashboard-wrapper {
+        flex: 1;
+        display: flex;
+        position: relative;
+      }
+
+      .dashboard-wrapper iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      /* ── Loading overlay ── */
+      .loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 17, 23, 0.75);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .loading-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .spinner {
+        width: 44px;
+        height: 44px;
+        border: 4px solid rgba(255,255,255,0.12);
+        border-top-color: #f59e0b;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* ── Footer ── */
+      footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #0d1020 0%, #161b2e 100%);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.3);
+      }
+
+      .footer-center {
+        text-align: center;
+        flex: 1;
+      }
+
+      .motto {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        background: linear-gradient(90deg, #f7c948, #f59e0b, #f7c948);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 4px;
+      }
+
+      .tagline {
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      /* ── Controls (right side of footer) ── */
+      .footer-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .control-btn {
+        position: relative;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.05);
+        color: rgba(255,255,255,0.55);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.25s ease;
+      }
+
+      .control-btn:hover {
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+        border-color: rgba(255,255,255,0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+
+      .control-btn.active {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+        border-color: rgba(245, 158, 11, 0.3);
+      }
+
+      .control-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* ── Auto-refresh popup ── */
+      .refresh-popup {
+        position: absolute;
+        bottom: 48px;
+        right: 0;
+        background: #fff;
+        color: #2c3e50;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+        min-width: 200px;
+        padding: 6px 0;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px) scale(0.96);
+        transition: all 0.2s ease;
+        z-index: 100;
+      }
+
+      .refresh-popup.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+      }
+
+      .refresh-popup-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: 12px 20px 8px;
+        color: #7f8c9b;
+      }
+
+      .refresh-popup-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        color: #2c3e50;
+      }
+
+      .refresh-popup-item:hover {
+        background: #f0f4f8;
+      }
+
+      .refresh-popup-item .check {
+        width: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3b82f6;
+        font-weight: 700;
+      }
+
+      /* ── Refresh countdown badge ── */
+      .refresh-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #f59e0b;
+        color: #0f1117;
+        font-size: 9px;
+        font-weight: 700;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+
+      .refresh-badge.show {
+        display: flex;
+      }
+
+      /* ── Pie countdown ── */
+      .pie-countdown {
+        width: 32px;
+        height: 32px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: default;
+      }
+
+      .pie-countdown.show {
+        display: flex;
+      }
+
+      .pie-countdown svg {
+        transform: rotate(-90deg);
+        width: 32px;
+        height: 32px;
+      }
+
+      .pie-bg {
+        fill: rgba(255,255,255,0.08);
+      }
+
+      .pie-fill {
+        fill: #6faa3c;
+        transition: none;
+      }
+
+      .pie-countdown .pie-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.7);
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      /* placeholder for left side balance */
+      .footer-left {
+        width: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <img src="MICHU.png" alt="Michu Logo" />
+      <img src="coop-bank-logo.png" alt="Cooperative Bank of Oromia Logo" />
+    </header>
+
+    <!-- Dashboard -->
+    <div class="dashboard-wrapper">
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+      </div>
+      <iframe
+        id="dashboardFrame"
+        src="https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all#refresh=60"
+        allowfullscreen
+        loading="lazy"
+        onload="hideLoading()"
+      ></iframe>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-left"></div>
+
+      <div class="footer-center">
+        <div class="motto">Empowering Communities, Transforming Lives</div>
+        <div class="tagline">Bank Smarter · Live Better</div>
+      </div>
+
+      <div class="footer-controls">
+        <!-- Pie Countdown -->
+        <div class="pie-countdown" id="pieCountdown">
+          <svg viewBox="0 0 36 36">
+            <circle class="pie-bg" cx="18" cy="18" r="18"/>
+            <path class="pie-fill" id="piePath" d=""/>
+          </svg>
+          <span class="pie-label" id="pieLabel"></span>
+        </div>
+
+        <!-- Auto Refresh Button -->
+        <div class="control-btn" id="refreshBtn" title="Auto Refresh" onclick="toggleRefreshMenu()">
+          <span class="refresh-badge" id="refreshBadge"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <!-- Popup -->
+          <div class="refresh-popup" id="refreshPopup">
+            <div class="refresh-popup-title">Auto Refresh</div>
+            <div class="refresh-popup-item" onclick="setRefresh(0, event)">
+              <span class="check" id="check-0">✓</span> Off
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(1, event)">
+              <span class="check" id="check-1"></span> 1 minute
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(5, event)">
+              <span class="check" id="check-5"></span> 5 minutes
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(10, event)">
+              <span class="check" id="check-10"></span> 10 minutes
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(15, event)">
+              <span class="check" id="check-15"></span> 15 minutes
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(30, event)">
+              <span class="check" id="check-30"></span> 30 minutes
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(60, event)">
+              <span class="check" id="check-60"></span> 60 minutes
+            </div>
+          </div>
+        </div>
+
+        <!-- Fullscreen Button -->
+        <div class="control-btn" id="fullscreenBtn" title="Full Screen" onclick="toggleFullscreen()">
+          <svg id="expandIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"/>
+            <polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/>
+            <line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+          <svg id="shrinkIcon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 14 10 14 10 20"/>
+            <polyline points="20 10 14 10 14 4"/>
+            <line x1="14" y1="10" x2="21" y2="3"/>
+            <line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      let refreshInterval = null;
+      let countdownTick = null;
+      let currentRefresh = 0;
+      let secondsLeft = 0;
+      let totalSeconds = 0;
+
+      /* ── Auto Refresh ── */
+      function toggleRefreshMenu() {
+        const popup = document.getElementById('refreshPopup');
+        popup.classList.toggle('show');
+      }
+
+      function setRefresh(minutes, event) {
+        event.stopPropagation();
+        currentRefresh = minutes;
+
+        // Update checkmarks
+        document.querySelectorAll('.refresh-popup .check').forEach(el => el.textContent = '');
+        document.getElementById('check-' + minutes).textContent = '✓';
+
+        // Update button state & badge
+        const btn = document.getElementById('refreshBtn');
+        const badge = document.getElementById('refreshBadge');
+        const pie = document.getElementById('pieCountdown');
+
+        if (minutes > 0) {
+          btn.classList.add('active');
+          badge.textContent = minutes + 'm';
+          badge.classList.add('show');
+          pie.classList.add('show');
+        } else {
+          btn.classList.remove('active');
+          badge.classList.remove('show');
+          pie.classList.remove('show');
+        }
+
+        // Clear existing timers
+        if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
+        if (countdownTick) { clearInterval(countdownTick); countdownTick = null; }
+
+        // Set new timer
+        if (minutes > 0) {
+          totalSeconds = minutes * 60;
+          secondsLeft = totalSeconds;
+          updatePie();
+
+          countdownTick = setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft <= 0) {
+              // Show loading overlay and refresh iframe
+              showLoading();
+              const frame = document.getElementById('dashboardFrame');
+              const baseUrl = 'https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all#refresh=60';
+              frame.src = baseUrl + '&_t=' + Date.now();
+              secondsLeft = totalSeconds;
+            }
+            updatePie();
+          }, 1000);
+        }
+
+        // Close popup
+        document.getElementById('refreshPopup').classList.remove('show');
+      }
+
+      /* ── Loading overlay helpers ── */
+      function showLoading() {
+        document.getElementById('loadingOverlay').classList.add('show');
+      }
+      function hideLoading() {
+        document.getElementById('loadingOverlay').classList.remove('show');
+      }
+
+      /* ── Pie Chart Drawing ── */
+      function updatePie() {
+        const fraction = secondsLeft / totalSeconds;  // 1 = full, 0 = empty
+        const piePath = document.getElementById('piePath');
+        const pieLabel = document.getElementById('pieLabel');
+
+        // Build SVG arc for remaining fraction
+        if (fraction >= 1) {
+          piePath.setAttribute('d', 'M18,18 L18,0 A18,18 0 1,1 17.99,0 Z');
+        } else if (fraction <= 0) {
+          piePath.setAttribute('d', '');
+        } else {
+          const angle = fraction * 360;
+          const rad = (angle - 90) * Math.PI / 180;
+          const x = 18 + 18 * Math.cos(rad);
+          const y = 18 + 18 * Math.sin(rad);
+          const largeArc = angle > 180 ? 1 : 0;
+          piePath.setAttribute('d', `M18,18 L18,0 A18,18 0 ${largeArc},1 ${x},${y} Z`);
+        }
+
+        // Label: show minutes remaining
+        const minsLeft = Math.ceil(secondsLeft / 60);
+        pieLabel.textContent = minsLeft + 'm';
+      }
+
+      /* ── Fullscreen ── */
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+
+      document.addEventListener('fullscreenchange', () => {
+        const isFS = !!document.fullscreenElement;
+        document.getElementById('expandIcon').style.display = isFS ? 'none' : 'block';
+        document.getElementById('shrinkIcon').style.display = isFS ? 'block' : 'none';
+        document.getElementById('fullscreenBtn').classList.toggle('active', isFS);
+      });
+
+      // Close popup when clicking outside
+      document.addEventListener('click', (e) => {
+        const popup = document.getElementById('refreshPopup');
+        const btn = document.getElementById('refreshBtn');
+        if (!btn.contains(e.target)) {
+          popup.classList.remove('show');
+        }
+      });
+    </script>
+  </body>
+</html>
