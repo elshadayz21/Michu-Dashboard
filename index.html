@@ -56,6 +56,7 @@
       .dashboard-wrapper {
         flex: 1;
         display: flex;
+        position: relative;
       }
 
       .dashboard-wrapper iframe {
@@ -66,11 +67,18 @@
 
       /* ── Footer ── */
       footer {
-        text-align: center;
-        padding: 18px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 24px;
         background: linear-gradient(135deg, #0d1020 0%, #161b2e 100%);
         border-top: 1px solid rgba(255, 255, 255, 0.06);
         box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.3);
+      }
+
+      .footer-center {
+        text-align: center;
+        flex: 1;
       }
 
       .motto {
@@ -92,6 +100,132 @@
         text-transform: uppercase;
         color: rgba(255, 255, 255, 0.45);
       }
+
+      /* ── Controls (right side of footer) ── */
+      .footer-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .control-btn {
+        position: relative;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.05);
+        color: rgba(255,255,255,0.55);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.25s ease;
+      }
+
+      .control-btn:hover {
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+        border-color: rgba(255,255,255,0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+
+      .control-btn.active {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+        border-color: rgba(245, 158, 11, 0.3);
+      }
+
+      .control-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* ── Auto-refresh popup ── */
+      .refresh-popup {
+        position: absolute;
+        bottom: 48px;
+        right: 0;
+        background: #fff;
+        color: #2c3e50;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+        min-width: 200px;
+        padding: 6px 0;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px) scale(0.96);
+        transition: all 0.2s ease;
+        z-index: 100;
+      }
+
+      .refresh-popup.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+      }
+
+      .refresh-popup-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: 12px 20px 8px;
+        color: #7f8c9b;
+      }
+
+      .refresh-popup-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        color: #2c3e50;
+      }
+
+      .refresh-popup-item:hover {
+        background: #f0f4f8;
+      }
+
+      .refresh-popup-item .check {
+        width: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3b82f6;
+        font-weight: 700;
+      }
+
+      /* ── Refresh countdown badge ── */
+      .refresh-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #f59e0b;
+        color: #0f1117;
+        font-size: 9px;
+        font-weight: 700;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+
+      .refresh-badge.show {
+        display: flex;
+      }
+
+      /* placeholder for left side balance */
+      .footer-left {
+        width: 84px;
+      }
     </style>
   </head>
   <body>
@@ -104,6 +238,7 @@
     <!-- Dashboard -->
     <div class="dashboard-wrapper">
       <iframe
+        id="dashboardFrame"
         src="https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=25-michu-commercial"
         allowfullscreen
         loading="lazy"
@@ -112,8 +247,138 @@
 
     <!-- Footer -->
     <footer>
-      <div class="motto">Empowering Communities &amp; Transforming Lives</div>
-      <div class="tagline">Bank Smarter · Live Better</div>
+      <div class="footer-left"></div>
+
+      <div class="footer-center">
+        <div class="motto">Empowering Communities &amp; Transforming Lives</div>
+        <div class="tagline">Bank Smarter · Live Better</div>
+      </div>
+
+      <div class="footer-controls">
+        <!-- Auto Refresh Button -->
+        <div class="control-btn" id="refreshBtn" title="Auto Refresh" onclick="toggleRefreshMenu()">
+          <span class="refresh-badge" id="refreshBadge"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <!-- Popup -->
+          <div class="refresh-popup" id="refreshPopup">
+            <div class="refresh-popup-title">Auto Refresh</div>
+            <div class="refresh-popup-item" onclick="setRefresh(0, event)">
+              <span class="check" id="check-0">✓</span> Off
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(1, event)">
+              <span class="check" id="check-1"></span> 1 minute
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(5, event)">
+              <span class="check" id="check-5"></span> 5 minutes
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(10, event)">
+              <span class="check" id="check-10"></span> 10 minutes
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(15, event)">
+              <span class="check" id="check-15"></span> 15 minutes
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(30, event)">
+              <span class="check" id="check-30"></span> 30 minutes
+            </div>
+            <div class="refresh-popup-item" onclick="setRefresh(60, event)">
+              <span class="check" id="check-60"></span> 60 minutes
+            </div>
+          </div>
+        </div>
+
+        <!-- Fullscreen Button -->
+        <div class="control-btn" id="fullscreenBtn" title="Full Screen" onclick="toggleFullscreen()">
+          <svg id="expandIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"/>
+            <polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/>
+            <line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+          <svg id="shrinkIcon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 14 10 14 10 20"/>
+            <polyline points="20 10 14 10 14 4"/>
+            <line x1="14" y1="10" x2="21" y2="3"/>
+            <line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+        </div>
+      </div>
     </footer>
+
+    <script>
+      let refreshInterval = null;
+      let currentRefresh = 0;
+
+      /* ── Auto Refresh ── */
+      function toggleRefreshMenu() {
+        const popup = document.getElementById('refreshPopup');
+        popup.classList.toggle('show');
+      }
+
+      function setRefresh(minutes, event) {
+        event.stopPropagation();
+        currentRefresh = minutes;
+
+        // Update checkmarks
+        document.querySelectorAll('.refresh-popup .check').forEach(el => el.textContent = '');
+        document.getElementById('check-' + minutes).textContent = '✓';
+
+        // Update button state & badge
+        const btn = document.getElementById('refreshBtn');
+        const badge = document.getElementById('refreshBadge');
+        if (minutes > 0) {
+          btn.classList.add('active');
+          badge.textContent = minutes + 'm';
+          badge.classList.add('show');
+        } else {
+          btn.classList.remove('active');
+          badge.classList.remove('show');
+        }
+
+        // Clear existing timer
+        if (refreshInterval) {
+          clearInterval(refreshInterval);
+          refreshInterval = null;
+        }
+
+        // Set new timer
+        if (minutes > 0) {
+          refreshInterval = setInterval(() => {
+            const frame = document.getElementById('dashboardFrame');
+            frame.src = frame.src;
+          }, minutes * 60 * 1000);
+        }
+
+        // Close popup
+        document.getElementById('refreshPopup').classList.remove('show');
+      }
+
+      /* ── Fullscreen ── */
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+
+      document.addEventListener('fullscreenchange', () => {
+        const isFS = !!document.fullscreenElement;
+        document.getElementById('expandIcon').style.display = isFS ? 'none' : 'block';
+        document.getElementById('shrinkIcon').style.display = isFS ? 'block' : 'none';
+        document.getElementById('fullscreenBtn').classList.toggle('active', isFS);
+      });
+
+      // Close popup when clicking outside
+      document.addEventListener('click', (e) => {
+        const popup = document.getElementById('refreshPopup');
+        const btn = document.getElementById('refreshBtn');
+        if (!btn.contains(e.target)) {
+          popup.classList.remove('show');
+        }
+      });
+    </script>
   </body>
 </html>
