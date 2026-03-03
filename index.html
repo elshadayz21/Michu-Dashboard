@@ -2,43 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Metabase Dashboard - VIDAA 88</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metabase Dashboard</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
+      width: 100%;
       overflow: hidden;
-      background: #ffffff;
+      background: #fff;
+      -webkit-overflow-scrolling: touch;
     }
     iframe {
+      display: block;
       border: none;
       width: 100%;
       height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
   </style>
 </head>
 <body>
-  <!-- Use sandbox to disable JS in the iframe (older browsers handle it better) -->
-<iframe 
-    src="https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all" 
-    allowfullscreen>
-</iframe>
+  <iframe
+    id="mbFrame"
+    src="https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all"
+    allow="fullscreen"
+    allowfullscreen
+    loading="eager"
+    referrerpolicy="no-referrer-when-downgrade"
+  ></iframe>
 
   <script>
-    // Auto-refresh every 5 minutes (300000 ms)
-    setInterval(() => {
-      const iframe = document.querySelector('iframe');
-      iframe.src = iframe.src;
-    }, 300000);
-
-    // Some VIDAA browsers need a small delay to load iframe
-    window.onload = function() {
-      setTimeout(() => {
-        const iframe = document.querySelector('iframe');
-        iframe.src = iframe.src;
-      }, 1000);
-    };
+    (function() {
+      function refreshFrame() {
+        var frame = document.getElementById('mbFrame');
+        if (frame && frame.src) {
+          var base = frame.src.split('&_t=')[0];
+          frame.src = base + '&_t=' + Date.now();
+        }
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          setInterval(refreshFrame, 300000);
+        });
+      } else {
+        setInterval(refreshFrame, 300000);
+      }
+    })();
   </script>
 </body>
 </html>
