@@ -233,85 +233,7 @@
         height: 18px;
       }
 
-      /* ── Auto-refresh popup ── */
-      .refresh-popup {
-        position: absolute;
-        bottom: 48px;
-        right: 0;
-        background: #fff;
-        color: #2c3e50;
-        border-radius: 10px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.35);
-        min-width: 200px;
-        padding: 6px 0;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(8px) scale(0.96);
-        transition: all 0.2s ease;
-        z-index: 100;
-      }
 
-      .refresh-popup.show {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0) scale(1);
-      }
-
-      .refresh-popup-title {
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        padding: 12px 20px 8px;
-        color: #7f8c9b;
-      }
-
-      .refresh-popup-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 20px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.15s ease;
-        color: #2c3e50;
-      }
-
-      .refresh-popup-item:hover {
-        background: #f0f4f8;
-      }
-
-      .refresh-popup-item .check {
-        width: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #3b82f6;
-        font-weight: 700;
-      }
-
-      /* ── Refresh countdown badge ── */
-      .refresh-badge {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background: #f59e0b;
-        color: #0f1117;
-        font-size: 9px;
-        font-weight: 700;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-      }
-
-      .refresh-badge.show {
-        display: flex;
-      }
 
       /* ── Pie countdown ── */
       .pie-countdown {
@@ -419,7 +341,7 @@
       </div>
       <iframe
         id="dashboardFrame"
-        src="https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all"
+        src="https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all#refresh=60"
         allowfullscreen
         loading="lazy"
         onload="hideLoading()"
@@ -436,49 +358,6 @@
       </div>
 
       <div class="footer-controls">
-        <!-- Pie Countdown -->
-        <div class="pie-countdown" id="pieCountdown">
-          <svg viewBox="0 0 36 36">
-            <circle class="pie-bg" cx="18" cy="18" r="18"/>
-            <path class="pie-fill" id="piePath" d=""/>
-          </svg>
-          <span class="pie-label" id="pieLabel"></span>
-        </div>
-
-        <!-- Auto Refresh Button -->
-        <div class="control-btn" id="refreshBtn" title="Auto Refresh" onclick="toggleRefreshMenu()">
-          <span class="refresh-badge" id="refreshBadge"></span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <!-- Popup -->
-          <div class="refresh-popup" id="refreshPopup">
-            <div class="refresh-popup-title">Auto Refresh</div>
-            <div class="refresh-popup-item" onclick="setRefresh(0, event)">
-              <span class="check" id="check-0">✓</span> Off
-            </div>
-            <div class="refresh-popup-item" onclick="setRefresh(1, event)">
-              <span class="check" id="check-1"></span> 1 minute
-            </div>
-            <div class="refresh-popup-item" onclick="setRefresh(5, event)">
-              <span class="check" id="check-5"></span> 5 minutes
-            </div>
-            <div class="refresh-popup-item" onclick="setRefresh(10, event)">
-              <span class="check" id="check-10"></span> 10 minutes
-            </div>
-            <div class="refresh-popup-item" onclick="setRefresh(15, event)">
-              <span class="check" id="check-15"></span> 15 minutes
-            </div>
-            <div class="refresh-popup-item" onclick="setRefresh(30, event)">
-              <span class="check" id="check-30"></span> 30 minutes
-            </div>
-            <div class="refresh-popup-item" onclick="setRefresh(60, event)">
-              <span class="check" id="check-60"></span> 60 minutes
-            </div>
-          </div>
-        </div>
-
         <!-- Fullscreen Button -->
         <div class="control-btn" id="fullscreenBtn" title="Full Screen" onclick="toggleFullscreen()">
           <svg id="expandIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -499,83 +378,18 @@
 
     <script>
       const TAB_URLS = {
-        'tab-all':   'https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all',
-        'tab-kiyya': 'https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=26-michu-kiyya',
+        'tab-all':   'https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all#refresh=60',
+        'tab-kiyya': 'https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=26-michu-kiyya#refresh=60',
       };
       let currentTabKey = 'tab-all';
 
       function switchTab(key) {
         if (!TAB_URLS[key]) return;
         currentTabKey = key;
-        // Update active state on buttons
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(key).classList.add('active');
-        // Load the tab
         showLoading();
         document.getElementById('dashboardFrame').src = TAB_URLS[key];
-      }
-
-      let refreshInterval = null;
-      let countdownTick = null;
-      let currentRefresh = 0;
-      let secondsLeft = 0;
-      let totalSeconds = 0;
-
-      /* ── Auto Refresh ── */
-      function toggleRefreshMenu() {
-        const popup = document.getElementById('refreshPopup');
-        popup.classList.toggle('show');
-      }
-
-      function setRefresh(minutes, event) {
-        event.stopPropagation();
-        currentRefresh = minutes;
-
-        // Update checkmarks
-        document.querySelectorAll('.refresh-popup .check').forEach(el => el.textContent = '');
-        document.getElementById('check-' + minutes).textContent = '✓';
-
-        // Update button state & badge
-        const btn = document.getElementById('refreshBtn');
-        const badge = document.getElementById('refreshBadge');
-        const pie = document.getElementById('pieCountdown');
-
-        if (minutes > 0) {
-          btn.classList.add('active');
-          badge.textContent = minutes + 'm';
-          badge.classList.add('show');
-          pie.classList.add('show');
-        } else {
-          btn.classList.remove('active');
-          badge.classList.remove('show');
-          pie.classList.remove('show');
-        }
-
-        // Clear existing timers
-        if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
-        if (countdownTick) { clearInterval(countdownTick); countdownTick = null; }
-
-        // Set new timer
-        if (minutes > 0) {
-          totalSeconds = minutes * 60;
-          secondsLeft = totalSeconds;
-          updatePie();
-
-          countdownTick = setInterval(function() {
-            secondsLeft--;
-            if (secondsLeft <= 0) {
-              // Show loading overlay — reload the currently active tab
-              showLoading();
-              var frame = document.getElementById('dashboardFrame');
-              frame.src = TAB_URLS[currentTabKey] + '&_t=' + new Date().getTime();
-              secondsLeft = totalSeconds;
-            }
-            updatePie();
-          }, 1000);
-        }
-
-        // Close popup
-        document.getElementById('refreshPopup').classList.remove('show');
       }
 
       /* ── Loading overlay helpers ── */
@@ -584,35 +398,6 @@
       }
       function hideLoading() {
         document.getElementById('loadingOverlay').classList.remove('show');
-      }
-
-      /* ── Pie Chart Drawing ── */
-      function updatePie() {
-        const fraction = secondsLeft / totalSeconds;  // 1 = full, 0 = empty
-        const piePath = document.getElementById('piePath');
-        const pieLabel = document.getElementById('pieLabel');
-
-        // Build SVG arc for remaining fraction
-        if (fraction >= 1) {
-          piePath.setAttribute('d', 'M18,18 L18,0 A18,18 0 1,1 17.99,0 Z');
-        } else if (fraction <= 0) {
-          piePath.setAttribute('d', '');
-        } else {
-          const angle = fraction * 360;
-          const rad = (angle - 90) * Math.PI / 180;
-          const x = 18 + 18 * Math.cos(rad);
-          const y = 18 + 18 * Math.sin(rad);
-          const largeArc = angle > 180 ? 1 : 0;
-          piePath.setAttribute('d', `M18,18 L18,0 A18,18 0 ${largeArc},1 ${x},${y} Z`);
-        }
-
-        // Label: show seconds when < 60s remain, otherwise minutes
-        if (secondsLeft < 60) {
-          pieLabel.textContent = secondsLeft + 's';
-        } else {
-          const minsLeft = Math.ceil(secondsLeft / 60);
-          pieLabel.textContent = minsLeft + 'm';
-        }
       }
 
       /* ── Fullscreen ── */
@@ -629,15 +414,6 @@
         document.getElementById('expandIcon').style.display = isFS ? 'none' : 'block';
         document.getElementById('shrinkIcon').style.display = isFS ? 'block' : 'none';
         document.getElementById('fullscreenBtn').classList.toggle('active', isFS);
-      });
-
-      // Close popup when clicking outside
-      document.addEventListener('click', (e) => {
-        const popup = document.getElementById('refreshPopup');
-        const btn = document.getElementById('refreshBtn');
-        if (!btn.contains(e.target)) {
-          popup.classList.remove('show');
-        }
       });
     </script>
   </body>
