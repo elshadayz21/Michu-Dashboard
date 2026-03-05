@@ -449,8 +449,9 @@
               // Show loading overlay and refresh iframe
               showLoading();
               const frame = document.getElementById('dashboardFrame');
-              const baseUrl = 'https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all';
-              frame.src = baseUrl + '&_t=' + Date.now();
+              // Preserve whatever tab the user is currently on
+              const currentSrc = frame.src.split('&_t=')[0];
+              frame.src = currentSrc + '&_t=' + Date.now();
               secondsLeft = totalSeconds;
             }
             updatePie();

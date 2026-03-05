@@ -507,9 +507,9 @@
               // Show loading overlay
               showLoading();
               var frame = document.getElementById('dashboardFrame');
-              var baseUrl = 'https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all';
-              // Add a timestamp cache buster
-              frame.src = baseUrl + "&_t=" + new Date().getTime();
+              // Preserve whatever tab the user is currently on
+              var currentSrc = frame.src.split('&_t=')[0];
+              frame.src = currentSrc + '&_t=' + new Date().getTime();
               secondsLeft = totalSeconds;
             }
             updatePie();
