@@ -360,6 +360,43 @@
       .footer-left {
         width: 120px;
       }
+
+      /* ── Tab Bar ── */
+      .tab-bar {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 24px;
+        background: linear-gradient(135deg, #0d1020 0%, #161b2e 100%);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+      }
+
+      .tab-btn {
+        padding: 6px 18px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.04);
+        color: rgba(255,255,255,0.5);
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+
+      .tab-btn:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        border-color: rgba(255,255,255,0.2);
+      }
+
+      .tab-btn.active {
+        background: rgba(245,158,11,0.15);
+        color: #f59e0b;
+        border-color: rgba(245,158,11,0.35);
+        font-weight: 600;
+      }
     </style>
   </head>
   <body>
@@ -368,6 +405,12 @@
       <img src="MICHU.png" alt="Michu Logo" />
       <img src="coop-bank-logo.png" alt="Cooperative Bank of Oromia Logo" />
     </header>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-all"    onclick="switchTab('tab-all')">Michu All</button>
+      <button class="tab-btn"        id="tab-kiyya"  onclick="switchTab('tab-kiyya')">Michu Kiyya</button>
+    </div>
 
     <!-- Dashboard -->
     <div class="dashboard-wrapper">
@@ -455,6 +498,23 @@
     </footer>
 
     <script>
+      const TAB_URLS = {
+        'tab-all':   'https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=24-michu-all',
+        'tab-kiyya': 'https://metabase.michu.com.et/public/dashboard/14c647bf-d063-49d9-b868-41b53b4334fa?tab=26-michu-kiyya',
+      };
+      let currentTabKey = 'tab-all';
+
+      function switchTab(key) {
+        if (!TAB_URLS[key]) return;
+        currentTabKey = key;
+        // Update active state on buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(key).classList.add('active');
+        // Load the tab
+        showLoading();
+        document.getElementById('dashboardFrame').src = TAB_URLS[key];
+      }
+
       let refreshInterval = null;
       let countdownTick = null;
       let currentRefresh = 0;
@@ -504,12 +564,10 @@
           countdownTick = setInterval(function() {
             secondsLeft--;
             if (secondsLeft <= 0) {
-              // Show loading overlay
+              // Show loading overlay — reload the currently active tab
               showLoading();
               var frame = document.getElementById('dashboardFrame');
-              // Preserve whatever tab the user is currently on
-              var currentSrc = frame.src.split('&_t=')[0];
-              frame.src = currentSrc + '&_t=' + new Date().getTime();
+              frame.src = TAB_URLS[currentTabKey] + '&_t=' + new Date().getTime();
               secondsLeft = totalSeconds;
             }
             updatePie();
