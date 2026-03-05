@@ -489,9 +489,13 @@
           piePath.setAttribute('d', `M18,18 L18,0 A18,18 0 ${largeArc},1 ${x},${y} Z`);
         }
 
-        // Label: show minutes remaining
-        const minsLeft = Math.ceil(secondsLeft / 60);
-        pieLabel.textContent = minsLeft + 'm';
+        // Label: show seconds when < 60s remain, otherwise minutes
+        if (secondsLeft < 60) {
+          pieLabel.textContent = secondsLeft + 's';
+        } else {
+          const minsLeft = Math.ceil(secondsLeft / 60);
+          pieLabel.textContent = minsLeft + 'm';
+        }
       }
 
       /* ── Fullscreen ── */
