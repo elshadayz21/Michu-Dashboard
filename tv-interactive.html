@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Michu Commercial Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: Arial, sans-serif; background: #0f1117; color: #fff; display: flex; flex-direction: column; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between; padding: 12px 24px;
+      background: linear-gradient(135deg, #0d1020 0%, #161b2e 100%);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    header img { height: 44px; object-fit: contain; }
+
+    .tabs { display: flex; gap: 8px; padding: 8px 24px; background: rgba(0,0,0,0.2); flex-wrap: wrap; }
+    .tab-btn {
+      padding: 10px 20px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);
+      color: #fff; cursor: pointer; border-radius: 8px; font-size: 14px;
+    }
+    .tab-btn:hover, .tab-btn.active { background: rgba(245,158,11,0.25); border-color: #f59e0b; color: #f7c948; }
+
+    .content { flex: 1; overflow: auto; padding: 24px; display: flex; flex-wrap: wrap; gap: 20px; align-content: flex-start; }
+    .card {
+      background: rgba(22,27,46,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
+      padding: 20px; min-width: 200px; max-width: 400px;
+    }
+    .card-title { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-transform: uppercase; }
+    .card-value { font-size: 28px; font-weight: bold; color: #f7c948; }
+    .card-table { font-size: 13px; margin-top: 12px; }
+    .card-table table { width: 100%; border-collapse: collapse; }
+    .card-table th, .card-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .card-table th { color: rgba(255,255,255,0.5); }
+
+    .loading { padding: 40px; text-align: center; color: rgba(255,255,255,0.5); }
+    .error { padding: 20px; color: #ef4444; }
+
+    footer {
+      display: flex; align-items: center; justify-content: space-between; padding: 12px 24px;
+      background: linear-gradient(135deg, #0d1020 0%, #161b2e 100%);
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .motto { font-size: 14px; font-weight: 600; color: #f7c948; }
+    .tagline { font-size: 11px; color: rgba(255,255,255,0.45); }
+    .footer-controls { display: flex; gap: 8px; }
+    .control-btn {
+      padding: 10px 16px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);
+      color: #fff; cursor: pointer; border-radius: 8px; font-size: 13px;
+    }
+    .control-btn:hover { background: rgba(255,255,255,0.1); }
+    .control-btn.active { background: rgba(245,158,11,0.25); border-color: #f59e0b; color: #f7c948; }
+    .refresh-badge { font-size: 11px; margin-left: 4px; }
+  </head>
+<body>
+  <header>
+    <img src="MICHU.png" alt="Michu" onerror="this.style.display='none'" />
+    <img src="coop-bank-logo.png" alt="Coop Bank" onerror="this.style.display='none'" />
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="content" id="content">
+    <div class="loading" id="loading">Loading dashboard...</div>
+  </div>
+
+  <footer>
+    <div>
+      <div class="motto">Empowering Communities, Transforming Lives</div>
+      <div class="tagline">Bank Smarter &middot; Live Better</div>
+    </div>
+    <div class="footer-controls">
+      <button class="control-btn" id="refreshBtn" onclick="refreshNow()">Refresh <span class="refresh-badge" id="refreshBadge"></span></button>
+      <button class="control-btn" id="fullscreenBtn" onclick="toggleFullscreen()">Fullscreen</button>
+    </div>
+  </footer>
+
+  <script>
+    var currentTab = 0;
+    var refreshMins = 5;
+    var countdown = 0;
+    var countdownInt = null;
+
+    function fetchData(tabIndex) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/dashboard-data?tab=' + (tabIndex || 0) + '&t=' + Date.now());
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          var loading = document.getElementById('loading');
+          loading.style.display = 'none';
+          try {
+            var data = xhr.status === 200 ? JSON.parse(xhr.responseText) : { cards: [], tabs: [] };
+            render(data);
+          } catch (e) {
+            document.getElementById('content').innerHTML = '<div class="error">Could not load data. Try again.</div>';
+          }
+        }
+      };
+      xhr.send();
+    }
+
+    function render(data) {
+      var tabsEl = document.getElementById('tabs');
+      var contentEl = document.getElementById('content');
+      tabsEl.innerHTML = '';
+      if (data.tabs && data.tabs.length) {
+        for (var i = 0; i < data.tabs.length; i++) {
+          var btn = document.createElement('button');
+          btn.className = 'tab-btn' + (i === currentTab ? ' active' : '');
+          btn.textContent = data.tabs[i].name;
+          btn.onclick = (function(idx) { return function() { currentTab = idx; fetchData(idx); }; })(i);
+          tabsEl.appendChild(btn);
+        }
+      }
+
+      contentEl.innerHTML = '';
+      var cards = data.cards || [];
+      for (var j = 0; j < cards.length; j++) {
+        var c = cards[j];
+        var div = document.createElement('div');
+        div.className = 'card';
+        var html = '<div class="card-title">' + escapeHtml(c.title || '') + '</div>';
+        if (c.value) html += '<div class="card-value">' + escapeHtml(c.value) + '</div>';
+        if (c.rows && c.rows.length) {
+          html += '<div class="card-table"><table><tbody>';
+          for (var r = 0; r < c.rows.length; r++) {
+            html += '<tr>';
+            for (var k = 0; k < c.rows[r].length; k++) {
+              html += (r === 0 && c.rows[r][k] && !/^[\d,\.]+$/.test(String(c.rows[r][k])) ? '<th>' : '<td>') + escapeHtml(c.rows[r][k]) + (r === 0 && c.rows[r][k] && !/^[\d,\.]+$/.test(String(c.rows[r][k])) ? '</th>' : '</td>');
+            }
+            html += '</tr>';
+          }
+          html += '</tbody></table></div>';
+        }
+        div.innerHTML = html;
+        contentEl.appendChild(div);
+      }
+      if (cards.length === 0) contentEl.innerHTML = '<div class="loading">No data extracted. Try the screenshot view at /</div>';
+    }
+
+    function escapeHtml(s) {
+      var d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    function refreshNow() {
+      fetchData(currentTab);
+      if (refreshMins > 0) {
+        countdown = refreshMins * 60;
+        document.getElementById('refreshBadge').textContent = refreshMins + 'm';
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    function startCountdown() {
+      if (countdownInt) clearInterval(countdownInt);
+      if (refreshMins <= 0) return;
+      countdown = refreshMins * 60;
+      countdownInt = setInterval(function() {
+        countdown--;
+        document.getElementById('refreshBadge').textContent = Math.ceil(countdown / 60) + 'm';
+        if (countdown <= 0) { refreshNow(); countdown = refreshMins * 60; }
+      }, 1000);
+    }
+
+    fetchData(0);
+    startCountdown();
+  </script>
+</body>
+</html>

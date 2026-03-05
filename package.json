@@ -1,0 +1,14 @@
+{
+  "name": "michu-dashboard-screenshot",
+  "version": "1.0.0",
+  "description": "Screenshot server for Metabase dashboard - works on Vidaa/Chrome 88 TVs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "screenshot": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "puppeteer": "^24.15.0"
+  }
+}
